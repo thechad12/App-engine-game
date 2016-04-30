@@ -1,7 +1,7 @@
 """models.py - This file contains the class definitions for the Datastore
 entities used by the Game. Because these classes are also regular Python
 classes they can include methods (such as 'to_form' and 'new_game')."""
-
+import math
 import random
 from datetime import date
 from protorpc import messages
@@ -16,21 +16,16 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """Game object"""
-    target = ndb.IntegerProperty(required=True)
-    attempts_allowed = ndb.IntegerProperty(required=True)
-    attempts_remaining = ndb.IntegerProperty(required=True, default=5)
+    cards = ndb.IntegerProperty(required=True)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
 
     @classmethod
-    def new_game(cls, user, min, max, attempts):
+    def new_game(cls, user, card):
         """Creates and returns a new game"""
-        if max < min:
-            raise ValueError('Maximum must be greater than minimum')
+
         game = Game(user=user,
-                    target=random.choice(range(1, max + 1)),
-                    attempts_allowed=attempts,
-                    attempts_remaining=attempts,
+                    cards=math.random(range(1, 11)),
                     game_over=False)
         game.put()
         return game
@@ -40,7 +35,7 @@ class Game(ndb.Model):
         form = GameForm()
         form.urlsafe_key = self.key.urlsafe()
         form.user_name = self.user.get().name
-        form.attempts_remaining = self.attempts_remaining
+        form.cards = self.cards
         form.game_over = self.game_over
         form.message = message
         return form
@@ -52,7 +47,7 @@ class Game(ndb.Model):
         self.put()
         # Add the game to the score 'board'
         score = Score(user=self.user, date=date.today(), won=won,
-                      guesses=self.attempts_allowed - self.attempts_remaining)
+                      cards=21-sum(cards))
         score.put()
 
 
@@ -65,13 +60,13 @@ class Score(ndb.Model):
 
     def to_form(self):
         return ScoreForm(user_name=self.user.get().name, won=self.won,
-                         date=str(self.date), guesses=self.guesses)
+                         date=str(self.date), cards=self.cards)
 
 
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    attempts_remaining = messages.IntegerField(2, required=True)
+    cards = messages.IntegerField(2, required=True)
     game_over = messages.BooleanField(3, required=True)
     message = messages.StringField(4, required=True)
     user_name = messages.StringField(5, required=True)
@@ -80,14 +75,12 @@ class GameForm(messages.Message):
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     user_name = messages.StringField(1, required=True)
-    min = messages.IntegerField(2, default=1)
-    max = messages.IntegerField(3, default=10)
-    attempts = messages.IntegerField(4, default=5)
+    cards = messages.IntegerField(2, default=2)
 
 
 class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""
-    guess = messages.IntegerField(1, required=True)
+    move = messages.BooleanField(1, required=True)
 
 
 class ScoreForm(messages.Message):
@@ -95,7 +88,7 @@ class ScoreForm(messages.Message):
     user_name = messages.StringField(1, required=True)
     date = messages.StringField(2, required=True)
     won = messages.BooleanField(3, required=True)
-    guesses = messages.IntegerField(4, required=True)
+    cards = messages.IntegerField(4, required=True)
 
 
 class ScoreForms(messages.Message):

@@ -4,7 +4,8 @@ This can also contain game logic. For more complex games it would be wise to
 move game logic to another file. Ideally the API will be simple, concerned
 primarily with communication to/from the API's users."""
 
-
+import math
+import random
 import logging
 import endpoints
 from protorpc import remote, messages
@@ -67,7 +68,7 @@ class GuessANumberApi(remote.Service):
         # This operation is not needed to complete the creation of a new game
         # so it is performed out of sequence.
         taskqueue.add(url='/tasks/cache_average_attempts')
-        return game.to_form('Good luck playing Guess a Number!')
+        return game.to_form('Please do not count cards!')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,

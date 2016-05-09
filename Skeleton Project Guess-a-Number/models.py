@@ -70,6 +70,7 @@ class GameForm(messages.Message):
     game_over = messages.BooleanField(3, required=True)
     message = messages.StringField(4, required=True)
     user_name = messages.StringField(5, required=True)
+    cancelled = messages.BooleanField(6, required=True, default=False)
 
 
 class NewGameForm(messages.Message):

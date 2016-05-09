@@ -26,10 +26,10 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
 USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
 
-MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
+MEMCACHE_MOVES_REMAINING = 'CARDS'
 
-@endpoints.api(name='guess_a_number', version='v1')
-class GuessANumberApi(remote.Service):
+@endpoints.api(name='blackjack', version='v1')
+class BlackjackApi(remote.Service):
     """Game API"""
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
@@ -94,22 +94,48 @@ class GuessANumberApi(remote.Service):
         if game.game_over:
             return game.to_form('Game already over!')
 
-        game.attempts_remaining -= 1
-        if request.guess == game.target:
+        if sum(cards) > 21:
+            game.end_game(True)
+            return game.to_form('You Lose!')
+            break
+
+        if sum(cards) == 21:
             game.end_game(True)
             return game.to_form('You win!')
+            Score.won(True)
+            break
 
-        if request.guess < game.target:
-            msg = 'Too low!'
-        else:
-            msg = 'Too high!'
-
-        if game.attempts_remaining < 1:
+        if sum(cards) < 21:
             game.end_game(False)
-            return game.to_form(msg + ' Game over!')
+            call = input("Hit or stay?")
+            if call == "Hit" or call == "hit":
+                new_card = random.randint(1,11)
+                cards.append(new_card)
+                return sum(cards)
+            if call == "Stay" or call == "stay":
+                return sum(cards)
+                game.end_game(True)
+                return game.to_form('You lose!')
+                break
+
+        #game.attempts_remaining -= 1
+        #if request.guess == game.target:
+        #    game.end_game(True)
+        #    return game.to_form('You win!')
+
+        #if request.guess < game.target:
+        #    msg = 'Too low!'
+        #else:
+        #    msg = 'Too high!'
+
+        #if game.attempts_remaining < 1:
+        #    game.end_game(False)
+        #    return game.to_form(msg + ' Game over!')
         else:
             game.put()
             return game.to_form(msg)
+        while game.end_game(False):
+            make_move(self, request)
 
     @endpoints.method(response_message=ScoreForms,
                       path='scores',
@@ -140,6 +166,30 @@ class GuessANumberApi(remote.Service):
     def get_average_attempts(self, request):
         """Get the cached average moves remaining"""
         return StringMessage(message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
+
+    @endpoints.method(request_message=GET_GAME_REQUEST
+                      response_message=GameForms,
+                      path='/game/{urlsafe_game_key}/cancel',
+                      http_method='PUT')
+    def cancel_game(self, request):
+        """Cancel game in progress"""
+        game = Game.query()
+
+
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=GameForms,
+                      path='{user_name}/games',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        """Returns all of an individual User's games"""
+        user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+                'A User with that name does not exist!')
+        games = Game.query(Game.user == user.key)
+        return GameForms(items=[game.to_form() for game in games])
+
 
     @staticmethod
     def _cache_average_attempts():

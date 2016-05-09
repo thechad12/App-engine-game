@@ -11,18 +11,18 @@ hand = [card_1, card_2]
 print hand
 
 call = input("Hit or stay?")
-#while call:
-if call == "hit":
-    new_card = random.randint(1,11)
-    hand.append(new_card)
-    print new_card
-elif call == "stay":
-    #break
-    b = sum(hand)
-    print b
-    if b > 21:
-        print "You lose"
-    if b == 21:
-        print "You win"
-    if b < 21:
-        print "You were Close"
+while hand < 21:
+    if call == "hit":
+        new_card = random.randint(1,11)
+        hand.append(new_card)
+        print new_card
+    elif call == "stay":
+        break
+        b = sum(hand)
+        print b
+        if b > 21:
+            print "You lose"
+        if b == 21:
+            print "You win"
+        if b < 21:
+            print "You were Close"

@@ -18,6 +18,7 @@ from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
+SCORE_REQUEST = endpoints.ResourceContainer(ScoreForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
         urlsafe_game_key=messages.StringField(1),)
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
@@ -159,6 +160,18 @@ class BlackjackApi(remote.Service):
         scores = Score.query(Score.user == user.key)
         return ScoreForms(items=[score.to_form() for score in scores])
 
+    @endpoints.method(request_message=SCORE_REQUEST,
+                      response_message=ScoreForms,
+                      path='scores/highscores',
+                      name='get_high_scores',
+                      http_method='GET')
+    def get_high_scores(self, request):
+        """Returns high scores in game"""
+        users = User.query(User.name)
+        scores = Score.query(Score.user == user.key).desc()
+        return scores for users in users
+
+
     @endpoints.method(response_message=StringMessage,
                       path='games/average_attempts',
                       name='get_average_attempts_remaining',
@@ -173,7 +186,11 @@ class BlackjackApi(remote.Service):
                       http_method='PUT')
     def cancel_game(self, request):
         """Cancel game in progress"""
-        game = Game.query()
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game:
+            game.cancelled(True)
+        else:
+            raise endpoints.NotFoundException('Game not found!')
 
 
     @endpoints.method(request_message=USER_REQUEST,

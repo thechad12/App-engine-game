@@ -168,8 +168,21 @@ class BlackjackApi(remote.Service):
     def get_high_scores(self, request):
         """Returns high scores in game"""
         users = User.query(User.name)
-        scores = Score.query(Score.user == user.key).desc()
+        scores = Score.query(Score.user == user.key).asc()
         return scores for users in users
+
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=ScoreForms,
+                      path='users/user-rankings',
+                      name='get_user_rankings',
+                      http_method='GET')
+    def get_user_rankings(self, request):
+        """Returns user rankings"""
+        users = User.query(User.name)
+        scores = Score.query([Score.user == user.key])
+        wins = Score.query([Score.won == True for user in users])
+        ranks = sum(scores)/sum(wins) for user in users
+        return ranks
 
 
     @endpoints.method(response_message=StringMessage,

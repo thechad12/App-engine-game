@@ -19,6 +19,7 @@ class Game(ndb.Model):
     cards = ndb.IntegerProperty(required=True)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
+    move = nbd.BooleanProperty(required=True)
 
     @classmethod
     def new_game(cls, user, card):
@@ -36,6 +37,7 @@ class Game(ndb.Model):
         form.urlsafe_key = self.key.urlsafe()
         form.user_name = self.user.get().name
         form.cards = self.cards
+        form.move = self.move
         form.game_over = self.game_over
         form.message = message
         return form

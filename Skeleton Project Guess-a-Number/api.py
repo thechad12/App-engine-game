@@ -109,29 +109,15 @@ class BlackjackApi(remote.Service):
         if sum(cards) < 21:
             game.end_game(False)
             call = input("Hit or stay?")
-            if call == "Hit" or call == "hit":
+            if call == "Hit" || call == "hit":
                 new_card = random.randint(1,11)
                 cards.append(new_card)
                 return sum(cards)
-            if call == "Stay" or call == "stay":
+            if call == "Stay" || call == "stay":
                 return sum(cards)
                 game.end_game(True)
                 return game.to_form('You lose!')
                 break
-
-        #game.attempts_remaining -= 1
-        #if request.guess == game.target:
-        #    game.end_game(True)
-        #    return game.to_form('You win!')
-
-        #if request.guess < game.target:
-        #    msg = 'Too low!'
-        #else:
-        #    msg = 'Too high!'
-
-        #if game.attempts_remaining < 1:
-        #    game.end_game(False)
-        #    return game.to_form(msg + ' Game over!')
         else:
             game.put()
             return game.to_form(msg)
@@ -168,7 +154,7 @@ class BlackjackApi(remote.Service):
     def get_high_scores(self, request):
         """Returns high scores in game"""
         users = User.query(User.name)
-        scores = Score.query(Score.user == user.key).asc()
+        scores = Score.query(Score.user == user.key).order_by(Score)
         return scores for users in users
 
     @endpoints.method(request_message=USER_REQUEST,
@@ -181,7 +167,7 @@ class BlackjackApi(remote.Service):
         users = User.query(User.name)
         scores = Score.query([Score.user == user.key])
         wins = Score.query([Score.won == True for user in users])
-        ranks = sum(scores)/sum(wins) for user in users
+        ranks = [sum(scores)/sum(wins) for user in users]
         return ranks
 
 
@@ -219,6 +205,23 @@ class BlackjackApi(remote.Service):
                 'A User with that name does not exist!')
         games = Game.query(Game.user == user.key)
         return GameForms(items=[game.to_form() for game in games])
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GameForms,
+                      path='/game/{urlsafe_game_key}/history',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        """Returns the history of moves and cards in a game"""
+        user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+            'A User with that name does not exist!')
+        games = Game.query(Game.user == user.key)
+        r = GameForms(items=[game.to_form() for game in games])
+        history_cards = r.cards
+        history_moves = r.move
+        return history_cards, history_moves
 
 
     @staticmethod

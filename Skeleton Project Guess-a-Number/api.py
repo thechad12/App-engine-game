@@ -167,7 +167,7 @@ class BlackjackApi(remote.Service):
         users = User.query(User.name)
         scores = Score.query([Score.user == user.key])
         wins = Score.query([Score.won == True for user in users])
-        ranks = [sum(scores)/sum(wins) for user in users]
+        ranks = [(sum(scores) * sum(wins)) for user in users]
         return ranks
 
 
@@ -221,7 +221,8 @@ class BlackjackApi(remote.Service):
         r = GameForms(items=[game.to_form() for game in games])
         history_cards = r.cards
         history_moves = r.move
-        return history_cards, history_moves
+        return history_cards
+        return history_moves
 
 
     @staticmethod

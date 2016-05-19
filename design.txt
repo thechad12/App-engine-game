@@ -1,0 +1,25 @@
+-New properties I added-
+
+-I added a new final score property to change the scoring method in the game
+model. I did this because I had to find a new logical scoring method for blackjack.
+To me, making the scoring method a percentage of the ending hand made the most
+logical sense. I also designed it so that if that percentage went over 100%,
+the score would be zero, since going over 21 is a loss.
+
+-In addition to that, I had to add the cards to the game and score classes.
+The cards are randomly chosen integers between 1 and 11 and each player
+begins the game with 2, just as in blackjack. They are stored in a list,
+so that if a player chooses to hit, the new card is appended on to the list.
+At the end of the game, which is when the player decides to stay, or when
+the player's cards are over 21, the method will take the sum of the cards
+and then calculate the score as a percentage of 21.
+
+-To get the get_game_history method to work, I added the cards to the Game
+class under the form method.
+
+-Trade-Offs-
+
+-One thing I had to decide on was how to implement the get_game_history
+method. I had trouble figuring out how to go about this, but I concluded that
+creating an index to query the Game class for a user's moves and cards
+they were handed was the best method for this.

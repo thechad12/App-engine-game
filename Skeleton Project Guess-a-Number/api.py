@@ -96,11 +96,13 @@ class BlackjackApi(remote.Service):
             return game.to_form('Game already over!')
 
         if sum(cards) > 21:
+            move = False
             game.end_game(True)
             return game.to_form('You Lose!')
             break
 
         if sum(cards) == 21:
+            move = False
             game.end_game(True)
             return game.to_form('You win!')
             Score.won(True)
@@ -110,10 +112,12 @@ class BlackjackApi(remote.Service):
             game.end_game(False)
             call = input("Hit or stay?")
             if call == "Hit" || call == "hit":
+                move = True
                 new_card = random.randint(1,11)
                 cards.append(new_card)
                 return sum(cards)
             if call == "Stay" || call == "stay":
+                move = False
                 return sum(cards)
                 game.end_game(True)
                 return game.to_form('You lose!')
@@ -167,7 +171,7 @@ class BlackjackApi(remote.Service):
         users = User.query(User.name)
         scores = Score.query([Score.user == user.key])
         wins = Score.query([Score.won == True for user in users])
-        ranks = [(sum(scores) * sum(wins)) for user in users]
+        ranks = [(sum(wins)/sum(games) * 100) for user in users]
         return ranks
 
 
@@ -238,4 +242,4 @@ class BlackjackApi(remote.Service):
                          'The average moves remaining is {:.2f}'.format(average))
 
 
-api = endpoints.api_server([GuessANumberApi])
+api = endpoints.api_server([BlackJackApi])

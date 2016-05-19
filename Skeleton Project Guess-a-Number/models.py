@@ -48,8 +48,8 @@ class Game(ndb.Model):
         self.game_over = True
         self.put()
         # Add the game to the score 'board'
-        final = sum(cards)/21
-        if final > 1:
+        final = (sum(cards)/21)*100
+        if final > 100:
             final = 0
         score = Score(user=self.user, date=date.today(), won=won,
                       final=final)

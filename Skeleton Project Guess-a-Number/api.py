@@ -65,9 +65,6 @@ class BlackjackApi(remote.Service):
             raise endpoints.BadRequestException('Maximum must be greater '
                                                 'than minimum!')
 
-        # Use a task queue to update the average attempts remaining.
-        # This operation is not needed to complete the creation of a new game
-        # so it is performed out of sequence.
         taskqueue.add(url='/tasks/cache_average_attempts')
         return game.to_form('Please do not count cards!')
 
@@ -111,12 +108,12 @@ class BlackjackApi(remote.Service):
         if sum(cards) < 21:
             game.end_game(False)
             call = input("Hit or stay?")
-            if call == "Hit" || call == "hit":
+            if call.lower() == "hit":
                 move = True
                 new_card = random.randint(1,11)
                 cards.append(new_card)
                 return sum(cards)
-            if call == "Stay" || call == "stay":
+            if call.lower() == "stay":
                 move = False
                 return sum(cards)
                 game.end_game(True)
@@ -159,7 +156,7 @@ class BlackjackApi(remote.Service):
         """Returns high scores in game"""
         users = User.query(User.name)
         scores = Score.query(Score.user == user.key).order_by(Score)
-        return scores for users in users
+        return [scores for users in users]
 
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,
@@ -183,7 +180,7 @@ class BlackjackApi(remote.Service):
         """Get the cached average moves remaining"""
         return StringMessage(message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
 
-    @endpoints.method(request_message=GET_GAME_REQUEST
+    @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForms,
                       path='/game/{urlsafe_game_key}/cancel',
                       http_method='PUT')

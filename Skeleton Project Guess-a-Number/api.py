@@ -82,7 +82,7 @@ class BlackjackApi(remote.Service):
 
     @endpoints.method(request_message=MAKE_MOVE_REQUEST,
                       response_message=GameForm,
-                      path='game/{urlsafe_game_key}',
+                      path='game/{urlsafe_game_key}/move',
                       name='make_move',
                       http_method='PUT')
     def make_move(self, request):
@@ -192,6 +192,7 @@ class BlackjackApi(remote.Service):
             game.cancelled(True)
         else:
             raise endpoints.NotFoundException('Game not found!')
+        return GameForm(cancelled=True)
 
 
     @endpoints.method(request_message=USER_REQUEST,
@@ -206,10 +207,10 @@ class BlackjackApi(remote.Service):
             raise endpoints.NotFoundException(
                 'A User with that name does not exist!')
         games = Game.query(Game.user == user.key)
-        return GameForms(items=[game.to_form() for game in games])
+        return GameForm(items=[game.to_form() for game in games])
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
-                      response_message=GameForms,
+                      response_message=GameForm,
                       path='/game/{urlsafe_game_key}/history',
                       name='get_game_history',
                       http_method='GET')
@@ -220,7 +221,7 @@ class BlackjackApi(remote.Service):
             raise endpoints.NotFoundException(
             'A User with that name does not exist!')
         games = Game.query(Game.user == user.key)
-        r = GameForms(items=[game.to_form() for game in games])
+        r = GameForm(items=[game.to_form() for game in games])
         history_cards = r.cards
         history_moves = r.move
         return history_cards

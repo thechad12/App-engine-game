@@ -15,31 +15,75 @@ to be used with any front-end to create an app.
 
 -ENDPOINTS:
 
-  -new_game: Creates a new game with a user. Creates a post request, takes in user_name and initial hand. Returns a game form with the initial game state.
+* new_game: 
+  * Path:'/game'
+  * Method: POST
+  * Parameters: Username
+  * Returns: New game form
+  * Description: Creates a new game
 
-  -get_game: Finds a game by querying for the urlsafe_game_key. Creates a get request, and returns a form with the initial game state.
+* get_game: 
+  * Path: '/game/urlsafe_game_key'
+  * Method: GET
+  * Parameters: urlsafe_game_key
+  * Returns: Game form with current state of game
+  * Description: Returns the current state of a game
 
-  -make_move: The function for game moves. This will query for the
-  urlsafe_game_key to associate the moves with that game and creates a post request.  It will check that the game is not already over before making any moves. The moves are based on the player's current hand. If it is over 21, it will end the game.
-  If it is under 21, the player will have a choice to hit or stay. If they hit,
-  it will append a new card to the current hand. If they choose to stay, it
-  will end the game and return the sum of their final hand.
+* make_move:
+  * Path: '/game/urlsafe_game_key/move'
+  * Method: POST
+  * Parameters: urlsafe_game_key
+  * Returns: Game form with a win or loss and final score
+  * Description: Endpoint to make a move in the game. Deals cards and then allows user to choose to hit or stay.
 
-  -get_scores: Returns all scores by querying the Scores class. Creates a get request and returns all scores in the database.
+* get_scores:
+  * Path: '/scores'
+  * Method: GET
+  * Parameters: None
+  * Returns: All scores of the game, unordered
+  * Description: Returns all scores in the game
 
-  -get_user_scores: Returns all scores associated with a particular user. Creates a get request and will query for the user by the username, then check if that user exists.
-  If the user exists, it will query for the scores and return them. If the
-  user does not exist, an exception will be raised.
+* get_user_scores:
+  * Path: '/scores/user/username'
+  * Method: GET
+  * Parameters: Username
+  * Returns: All scores for a given user
+  * Description: Returns all scores for a user
 
-  -get_high_scores: Creates a get request. Queries for all users that exist, then it will return all scores and order the scores in descending order.
+* get_high_scores:
+  * Path: '/scores/highscores'
+  * Method: GET
+  * Parameters: None
+  * Returns: All scores in order of highest to lowest
+  * Description: Gets all scores and orders them to see high scores
 
-  -get_user_rankings: Creates a get request. Returns the rankings of users by querying for all users, scores, and wins. It will take the sum of a user's wins and divide it by the sum of all the games they have played and order the users in descending order.
+* get_user_rankings:
+  * Path: '/users/user-rankings'
+  * Method: GET
+  * Parameters: None
+  * Returns: User rankings ordered by percentage of wins over games played
+  * Description: Creates user rankings for the game
 
-  -cancel_game: Creates a post request. Queries for the game's urlsafe_game_key and sets game.cancelled to True.
+* cancel_game: 
+  * Path: '/game/urlsafe_game_key/cancel'
+  * Method: POST
+  * Parameters: urlsafe_game_key
+  * Returns: Game form with cancelled set to true
+  * Description: Cancels a game 
 
-  -get_user_games: Creates a get request. Queries for a user name and checks if that user exists. If the user exists, it will return all games associated with that user. If the user does not exist, it will raise an exception.
+* get_user_games:
+  * Path: '/username/games'
+  * Method: GET
+  * Parameters: Username
+  * Returns: All games for a user
+  * Description: Gets all games for a user
 
-  -get_game_history: Creates a get request. Queries for a user and checks if the user exists. If the user exists, it will query for games associated with that user and then send the game forms. It will then return the moves and the cards associated with all games associated with that user.
+* get_game_history: 
+  * Path: '/game/urlsafe_game_key/history'
+  * Method: GET
+  * Parameters: urlsafe_game_key
+  * Returns: History of a particular game, which includes cards dealt and moves made
+  * Description: Allows access to a specific game's history
 
 -MODELS:
 

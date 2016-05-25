@@ -4,9 +4,8 @@ This can also contain game logic. For more complex games it would be wise to
 move game logic to another file. Ideally the API will be simple, concerned
 primarily with communication to/from the API's users."""
 
-import math
+
 import random
-import logging
 import endpoints
 from protorpc import remote, messages
 from google.appengine.api import memcache
@@ -14,7 +13,7 @@ from google.appengine.api import taskqueue
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
-    ScoreForms
+    ScoreForms, ScoreForm
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -88,6 +87,7 @@ class BlackjackApi(remote.Service):
                       http_method='PUT')
     def make_move(self, request):
         """Makes a move. Returns a game state with message"""
+        cards = [random.randint(1,11) for i in range(2)]
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game.game_over:
             return game.to_form('Game already over!')
@@ -96,14 +96,14 @@ class BlackjackApi(remote.Service):
             move = False
             game.end_game(True)
             return game.to_form('You Lose!')
-            break
+
 
         if sum(cards) == 21:
             move = False
             game.end_game(True)
             return game.to_form('You win!')
             Score.won(True)
-            break
+
 
         if sum(cards) < 21:
             game.end_game(False)
@@ -118,12 +118,12 @@ class BlackjackApi(remote.Service):
                 return sum(cards)
                 game.end_game(True)
                 return game.to_form('You lose!')
-                break
+
         else:
             game.put()
-            return game.to_form(msg)
+            return game.to_form('Make a move!')
         while game.end_game(False):
-            make_move(self, request)
+            self.make_move(self, request)
 
     @endpoints.method(response_message=ScoreForms,
                       path='scores',
@@ -155,8 +155,8 @@ class BlackjackApi(remote.Service):
     def get_high_scores(self, request):
         """Returns high scores in game"""
         users = User.query(User.name)
-        scores = Score.query(Score.user == user.key).order_by(Score)
-        return [scores for users in users]
+        scores = Score.query(Score.user).order_by(Score)
+        return [scores for user in users]
 
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,
@@ -168,6 +168,7 @@ class BlackjackApi(remote.Service):
         users = User.query(User.name)
         scores = Score.query([Score.user == user.key])
         wins = Score.query([Score.won == True for user in users])
+        games = Game.query(User.name)
         ranks = [(sum(wins)/sum(games) * 100) for user in users]
         return ranks
 
@@ -181,7 +182,7 @@ class BlackjackApi(remote.Service):
         return StringMessage(message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
-                      response_message=GameForms,
+                      response_message=GameForm,
                       path='/game/{urlsafe_game_key}/cancel',
                       http_method='PUT')
     def cancel_game(self, request):
@@ -194,7 +195,7 @@ class BlackjackApi(remote.Service):
 
 
     @endpoints.method(request_message=USER_REQUEST,
-                      response_message=GameForms,
+                      response_message=GameForm,
                       path='{user_name}/games',
                       name='get_user_games',
                       http_method='GET')
@@ -239,4 +240,4 @@ class BlackjackApi(remote.Service):
                          'The average moves remaining is {:.2f}'.format(average))
 
 
-api = endpoints.api_server([BlackJackApi])
+api = endpoints.api_server([BlackjackApi])

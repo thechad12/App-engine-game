@@ -13,7 +13,7 @@ to be used with any front-end to create an app.
   -This is a game of Blackjack: it generates 2 random cards for you, and you try to get to 21 or as close to 21 as possible without going over. Once your cards are dealt you can choose to hit or stay, meaning you can either get another card or keep the hand you have, respectively. If you go over 21, the game ends and your score will be 0. If you do not go over 21, your score will be the sum of your hand divided by 21 and multiplied by 100.
 
 
--FUNCTIONS:
+-ENDPOINTS:
 
   -new_game: Creates a new game with a user. Creates a post request, takes in user_name and initial hand. Returns a game form with the initial game state.
 

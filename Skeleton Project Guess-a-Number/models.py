@@ -19,14 +19,14 @@ class Game(ndb.Model):
     cards = ndb.IntegerProperty(required=True)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
-    move = nbd.BooleanProperty(required=True)
+    move = ndb.BooleanProperty(required=True)
 
     @classmethod
     def new_game(cls, user, card):
         """Creates and returns a new game"""
 
         game = Game(user=user,
-                    cards=math.random(range(1, 11)),
+                    cards=list(math.random(range(1, 11))),
                     game_over=False)
         game.put()
         return game

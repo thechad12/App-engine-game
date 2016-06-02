@@ -241,4 +241,4 @@ class BlackjackApi(remote.Service):
                          'The average moves remaining is {:.2f}'.format(average))
 
 
-api = endpoints.api_server([BlackjackApi])
+api = endpoints.api_server([BlackjackAPI])
